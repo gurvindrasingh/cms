@@ -7,7 +7,7 @@ import {
   updateProject,
   deleteProject,
 } from '../controllers/project.controller';
-import authenticateJWT from '../middleware/auth.middleware';
+import { authenticateJWT } from '../middleware/auth.middleware';
 
 const router = Router();
 

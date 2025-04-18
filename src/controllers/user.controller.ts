@@ -1,8 +1,16 @@
 import { Request, Response } from 'express';
+import { User } from "../generated/prisma";
 
-export const getProfile = async (req: Request, res: Response) => {
+interface AuthenticatedRequest extends Request {
+  user?: User;
+}
+
+export const getProfile = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    // req.user is populated by authenticateJWT middleware
+    if (!req.user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
     res.status(200).json({
       message: 'Profile data fetched successfully',
       user: req.user,

@@ -3,12 +3,18 @@ import { Request, Response } from 'express';
 import prisma from '../services/prisma';
 
 export const createProject = async (req: Request, res: Response) => {
-  const { name } = req.body;
+  const { name, description } = req.body;
   const userId = (req as any).user.id;
 
   try {
     const project = await prisma.project.create({
-      data: { name, userId },
+      data: {
+        name,
+        description,
+        owner: {
+          connect: { id: userId }, // 👈 userId should be an Int
+        },
+      },
     });
     res.status(201).json(project);
   } catch (err) {
@@ -20,7 +26,7 @@ export const getProjects = async (req: Request, res: Response) => {
   const userId = (req as any).user.id;
   try {
     const projects = await prisma.project.findMany({
-      where: { userId },
+      where: { ownerId: userId },
     });
     res.json(projects);
   } catch (err) {
@@ -37,7 +43,7 @@ export const getProjectById = async (req: Request, res: Response) => {
       where: { id: Number(id) },
     });
 
-    if (!project || project.userId !== userId) {
+    if (!project || project.ownerId !== userId) {
       return res.status(404).json({ error: 'Project not found' });
     }
 
@@ -54,7 +60,7 @@ export const updateProject = async (req: Request, res: Response) => {
 
   try {
     const project = await prisma.project.updateMany({
-      where: { id: Number(id), userId },
+      where: { id: Number(id), ownerId: userId },
       data: { name },
     });
 
@@ -74,7 +80,7 @@ export const deleteProject = async (req: Request, res: Response) => {
 
   try {
     const project = await prisma.project.deleteMany({
-      where: { id: Number(id), userId },
+      where: { id: Number(id), ownerId: userId },
     });
 
     if (!project.count) {

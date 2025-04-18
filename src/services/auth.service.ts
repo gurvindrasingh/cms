@@ -1,8 +1,6 @@
 import bcrypt from "bcryptjs";
-import { PrismaClient } from "@prisma/client";
+import prisma from "../services/prisma";
 import { signJwt } from "../utils/jwt";
-
-const prisma = new PrismaClient();
 
 export const signupUser = async ({ name, email, password }: any) => {
   const existingUser = await prisma.user.findUnique({ where: { email } });
