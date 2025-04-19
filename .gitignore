@@ -1,5 +1,5 @@
 .DS_Store
 .env
-dist/
-node_modules/
-src/generated/
+api/dist/
+api/node_modules/
+api/src/generated/
