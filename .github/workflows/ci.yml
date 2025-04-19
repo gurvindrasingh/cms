@@ -5,6 +5,10 @@ on:
     branches: [main, develop, stage, release/**, feature/**, hotfix/**, bugfix/**]
   pull_request:
     branches: [main, develop, stage, release/**, feature/**, hotfix/**, bugfix/**]
+
+env:
+  PROJECT_DIR: ./api
+
 jobs:
   build-and-test:
     name: Creating build and running tests...
@@ -44,15 +48,19 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Generate Prisma Client
         run: npx prisma generate
+        working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Run TypeScript build
         run: npm run build
+        working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Run tests
         run: npm test
+        working-directory: ${{ env.PROJECT_DIR }}
 
   build-and-push:
     name: Making Build and deploying it in registry...
