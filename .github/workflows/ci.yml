@@ -2,11 +2,24 @@ name: CMS CI
 
 on:
   push:
-    branches: [main, develop]
+    branches:
+      - main
+      - stage
+      - release/**
+      - feature/**
+      - hotfix/**
+      - bugfix/**
   pull_request:
-    branches: [main, develop]
+    branches: 
+      - main
+      - stage
+      - release/**
+      - feature/**
+      - hotfix/**
+      - bugfix/**
 jobs:
   build-and-test:
+    name: Creating build and running tests...
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -28,6 +41,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -44,10 +65,12 @@ jobs:
 
       - name: Run tests
         run: npm test
+
   build-and-push:
+    name: Making Build and deploying it in registry...
     runs-on: ubuntu-latest
     needs: build-and-test
-    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/stage'
 
     permissions:
       contents: read
@@ -68,5 +91,6 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -f Dockerfile.dev -t ghcr.io/${{ github.repository }}/cms:latest ./api
-          docker push ghcr.io/${{ github.repository }}/cms:latest
+          TAG=ghcr.io/${{ github.repository }}/cms:${{ github.sha }}
+          docker build -f Dockerfile.dev -t $TAG ./api
+          docker push $TAG
