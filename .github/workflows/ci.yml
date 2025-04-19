@@ -2,21 +2,9 @@ name: CMS CI
 
 on:
   push:
-    branches:
-      - main
-      - stage
-      - release/**
-      - feature/**
-      - hotfix/**
-      - bugfix/**
+    branches: [main, develop, stage, release/**, feature/**, hotfix/**, bugfix/**]
   pull_request:
-    branches: 
-      - main
-      - stage
-      - release/**
-      - feature/**
-      - hotfix/**
-      - bugfix/**
+    branches: [main, develop, stage, release/**, feature/**, hotfix/**, bugfix/**]
 jobs:
   build-and-test:
     name: Creating build and running tests...
@@ -94,3 +82,24 @@ jobs:
           TAG=ghcr.io/${{ github.repository }}/cms:${{ github.sha }}
           docker build -f Dockerfile.dev -t $TAG ./api
           docker push $TAG
+
+  auto-tag:
+    name: Auto Tag on Release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/heads/release/')
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Extract version from branch name
+        id: extract_version
+        run: echo "RELEASE_TAG=v${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+      - name: Create Git tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag $RELEASE_TAG
+          git push origin $RELEASE_TAG
